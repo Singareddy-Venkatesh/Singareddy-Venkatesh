@@ -1,0 +1,186 @@
+create 3-Tier Vpc Using Terrform
+
+# create vpc
+resource "aws_vpc" "My_Vpc" {
+  cidr_block              = var.vpc_cidr
+  instance_tenancy        = "default"
+  enable_dns_hostnames    = true
+
+  tags      = {
+    Name    = "My_Vpc"
+  }
+}
+
+# create internet gateway and attach it to vpc
+resource "aws_internet_gateway" "My_IGT" {
+  vpc_id    = aws_vpc.My_Vpc.id
+
+  tags      = {
+    Name    = "My_IGT"
+  }
+}
+
+# create public subnet1
+resource "aws_subnet" "public_subnet1" {
+  vpc_id                  = aws_vpc.My_Vpc.id
+  cidr_block              = var.public_subnet1_cidr
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = true
+
+  tags      = {
+    Name    = "public_subnet1"
+  }
+}
+
+# create public subnet2
+resource "aws_subnet" "public_subnet2" {
+  vpc_id                  = aws_vpc.My_Vpc.id
+  cidr_block              = var.public_subnet2_cidr
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
+
+  tags      = {
+    Name    = "public_subnet2"
+  }
+}
+
+# create route table and add public route
+resource "aws_route_table" "public_route_table" {
+  vpc_id       = aws_vpc.My_Vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.My_IGT.id
+  }
+
+  tags       = {
+    Name     = "public_route_table"
+  }
+}
+
+# associate public subnet1 to "public route table"
+# terraform aws associate subnet with route table
+resource "aws_route_table_association" "public_subnet1_route_table_association" {
+  subnet_id           = aws_subnet.public_subnet1.id
+  route_table_id      = aws_route_table.public_route_table.id
+}
+
+# associate public subnet2 to "public route table"
+# terraform aws associate subnet with route table
+resource "aws_route_table_association" "public_subnet_2_route_table_association" {
+  subnet_id           = aws_subnet.public_subnet2.id
+  route_table_id      = aws_route_table.public_route_table.id
+}
+
+# create private app subnet1
+# terraform aws create subnet
+resource "aws_subnet" "private_app_subnet1" {
+  vpc_id                   = aws_vpc.My_Vpc.id
+  cidr_block               = var.private_app_subnet1_cidr
+  availability_zone        = "us-east-1a"
+  map_public_ip_on_launch  = false
+
+  tags      = {
+    Name    = "private_app_subnet1"
+  }
+}
+
+# create private app subnet2
+# terraform aws create subnet
+resource "aws_subnet" "private_app_subnet2" {
+  vpc_id                   = aws_vpc.My_Vpc.id
+  cidr_block               = var.private_app_subnet2_cidr
+  availability_zone        = "us-east-1b"
+  map_public_ip_on_launch  = false
+
+  tags      = {
+    Name    = "private_app_subnet2"
+  }
+}
+
+# create private data subnet1
+# terraform aws create subnet
+resource "aws_subnet" "private_data_subnet1" {
+  vpc_id                   = aws_vpc.My_Vpc.id
+  cidr_block               = var.private_data_subnet1_cidr
+  availability_zone        = "us-east-1a"
+  map_public_ip_on_launch  = false
+
+  tags      = {
+    Name    = "private_data_subnet1"
+  }
+}
+
+# create private data subnet2
+# terraform aws create subnet
+resource "aws_subnet" "private_data_subnet2" {
+  vpc_id                   = aws_vpc.My_Vpc.id
+  cidr_block               = var.private_data_subnet2_cidr
+  availability_zone        = "us-east-1b"
+  map_public_ip_on_launch  = false
+
+  tags      = {
+    Name    = "private_data_subnet2"
+  }
+}
+
+
+
+
+
+Variable.tf
+
+# create vpc cidr blocks
+
+variable "vpc_cidr" {
+  description = "vpc_cidr"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "public_subnet1_cidr" {
+  description = "public subnet1"
+  type        = string
+  default     = "10.0.1.0/24"
+}
+
+variable "public_subnet2_cidr" {
+  description = "public subnet2"
+  type        = string
+  default     = "10.0.2.0/24"
+}
+
+variable "private_app_subnet1_cidr" {
+  description = "private app subnet1"
+  type        = string
+  default     = "10.0.3.0/24"
+}
+
+variable "private_app_subnet2_cidr" {
+  description = "private app subnet2"
+  type        = string
+  default     = "10.0.4.0/24"
+}
+
+variable "private_data_subnet1_cidr" {
+  description = "private data subnet1"
+  type        = string
+  default     = "10.0.5.0/24"
+}
+
+variable "private_data_subnet2_cidr" {
+  description = "private data subnet2"
+  type        = string
+  default     = "10.0.6.0/24"
+}
+
+
+Provider.tf
+
+provider "aws" {
+    region = "us-east-1"
+    profile = "Venkat"
+
+}
+
+
